@@ -63,7 +63,6 @@ func Unpack(v string) (string, error) {
 				resultBuffer[idx] = symbol
 			}
 			continue
-
 		}
 
 		resultBuffer[idx] = rn

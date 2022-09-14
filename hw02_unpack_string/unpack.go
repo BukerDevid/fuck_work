@@ -18,8 +18,8 @@ func Unpack(v string) (string, error) {
 
 	var symbol rune
 	var limit int
-	var baffle bool = false
-	var idx int = 0
+	var baffle bool
+	var idx int
 
 	for _, rn := range v {
 

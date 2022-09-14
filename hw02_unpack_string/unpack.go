@@ -8,7 +8,7 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(v string) (string, error) {
-	//Check string and get size
+	/*Check string and get size*/
 	count, ok := CheckString(v)
 	if !ok {
 		return "", ErrInvalidString
@@ -19,12 +19,12 @@ func Unpack(v string) (string, error) {
 	var symbol rune
 	var limit int
 	var baffle bool = false
+	var idx int = 0
 
-	idx := 0
 	for _, rn := range v {
 
 		if rn == rune('\\') {
-			// Check doubling baffle
+			/*Check doubling baffle*/
 			if baffle {
 				baffle = false
 
@@ -39,23 +39,23 @@ func Unpack(v string) (string, error) {
 
 		if num, err := strconv.Atoi(string(rn)); err == nil {
 			if baffle {
-				// If baffle is used. Number is one symbol
+				/*If baffle is used. Number is one symbol*/
 				baffle = false
 				resultBuffer[idx] = rn
 				idx++
 				continue
 			}
 
-			// If buffle not use and rune is first number in series (>5) ((num-1)+count)
+			/*If buffle not use and rune is first number in series (>5) ((num-1)+count)*/
 			symbol = resultBuffer[idx-1] //get last symbol
 
 			if num == 0 {
-				// Reset last simbol id number repeate equal zero
+				/*Reset last simbol id number repeate equal zero*/
 				idx--
 				limit = 0
 
 			} else {
-				// Limit is last symbol (one in result) + other
+				/*Limit is last symbol (one in result) + other*/
 				limit = idx + (num - 1)
 			}
 
@@ -78,7 +78,7 @@ func CheckString(v string) (int, bool) {
 		return 0, true
 	}
 
-	// First rune is number
+	/*First rune is number*/
 	if _, err := strconv.Atoi(string([]rune(v)[0])); err == nil {
 		return 0, false
 	}
@@ -90,7 +90,7 @@ func CheckString(v string) (int, bool) {
 	for _, rn := range v {
 
 		if rn == rune('\\') {
-			// Check doubling baffle
+			/*Check doubling baffle*/
 			if baffle {
 				baffle = false
 				number = false
@@ -104,18 +104,18 @@ func CheckString(v string) (int, bool) {
 
 		if num, err := strconv.Atoi(string(rn)); err == nil {
 			if baffle {
-				// If baffle is used. Number is one symbol
+				/*If baffle is used. Number is one symbol*/
 				baffle = false
 				count++
 				continue
 			}
 
+			/*If buffle not use but two number in series (5 >5) FALSE*/
 			if number {
-				// If buffle not use but two number in series (5 >5) FALSE
 				return count, false
 			}
 
-			// If buffle not use and rune is first number in series (>5) ((num-1)+count)
+			/*If buffle not use and rune is first number in series (>5) ((num-1)+count)*/
 			count = (num - 1) + count
 			number = true
 			continue

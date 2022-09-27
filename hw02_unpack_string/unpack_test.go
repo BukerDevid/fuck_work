@@ -27,6 +27,7 @@ func TestUnpack(t *testing.T) {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			result, err := Unpack(tc.input)
+			t.Log(result, err)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, result)
 		})

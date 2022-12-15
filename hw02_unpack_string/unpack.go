@@ -10,58 +10,70 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(v string) (string, error) {
-	result := &strings.Builder{}
 	if v == "" {
 		return "", nil
 	}
-
+	var baffle, number bool
+	result := &strings.Builder{}
+	smbRep := &strings.Builder{}
 	if unicode.IsDigit(rune(v[0])) {
 		return "", ErrInvalidString
 	}
-
-	sym_rep := &strings.Builder{}
-	var baffle bool
-
-	for _, cur_run := range v {
-		if cur_run == '\\' {
+	for _, currRune := range v {
+		if currRune == '\\' {
+			number = false
 			if baffle {
-				baffle = false
-				sym_rep.WriteByte(byte(cur_run))
-				// must_num = true
+				if smbRep.Len() == 0 {
+					smbRep.WriteRune('\\')
+					baffle = false
+					continue
+				}
+				result.WriteString(smbRep.String())
+				smbRep.Reset()
 				continue
 			}
-
-			sym_rep = &strings.Builder{}
-		}
-
-		if num, err := strconv.Atoi(string(cur_run)); err == nil {
-			if baffle && sym_rep.Len() == 0 {
-				sym_rep.WriteByte(byte(cur_run))
-				// must_num = true
-				continue
-			}
-
-			if baffle {
-				baffle = false
-				result.WriteString(strings.Repeat(sym_rep.String(), num-1))
-				continue
-			}
-
-			result.WriteString(strings.Repeat(result.String()[result.Len():], num-1))
+			baffle = true
 			continue
 		}
-
+		if num, err := strconv.Atoi(string(currRune)); err == nil {
+			if number {
+				return result.String(), ErrInvalidString
+			}
+			if baffle {
+				smbRep.WriteRune(currRune)
+				baffle = false
+				continue
+			}
+			number = true
+			if smbRep.Len() == 0 {
+				buf := result.String()
+				result.Reset()
+				result.WriteString(buf[:len(buf)-1])
+				smbRep.WriteRune(rune(buf[len(buf)-1]))
+			}
+			baffle = false
+			if num == 0 {
+				smbRep.Reset()
+				continue
+			}
+			result.WriteString(strings.Repeat(smbRep.String(), num))
+			smbRep.Reset()
+			continue
+		}
 		if baffle {
-			sym_rep.WriteByte(byte(cur_run))
-			continue
+			if smbRep.Len() == 0 {
+				smbRep.WriteRune('\\')
+				baffle = false
+			}
+			smbRep.WriteRune(currRune)
+		} else {
+			result.WriteRune(currRune)
 		}
-
-		result.WriteByte(byte(cur_run))
+		number = false
 	}
-
 	if baffle {
-		return "", ErrInvalidString
+		return result.String(), ErrInvalidString
 	}
-
+	result.WriteString(smbRep.String())
 	return result.String(), nil
 }

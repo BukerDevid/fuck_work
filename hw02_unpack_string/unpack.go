@@ -27,9 +27,11 @@ func Unpack(v string) (string, error) {
 			return "", err
 		}
 	}
+
 	if baffle {
 		return result.String(), ErrInvalidString
 	}
+
 	result.WriteString(smbRep.String())
 	return result.String(), nil
 }

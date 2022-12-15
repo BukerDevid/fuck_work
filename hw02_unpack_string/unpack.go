@@ -23,7 +23,7 @@ func Unpack(v string) (string, error) {
 	}
 
 	for _, currRune := range v {
-		if err := check(&baffle, &number, &currRune, result, smbRep); err != nil {
+		if err := check(&baffle, &number, currRune, result, smbRep); err != nil {
 			return "", err
 		}
 	}
@@ -34,8 +34,8 @@ func Unpack(v string) (string, error) {
 	return result.String(), nil
 }
 
-func check(baffle, number *bool, currRune *rune, result, smbRep *strings.Builder) error {
-	if *currRune == '\\' {
+func check(baffle, number *bool, currRune rune, result, smbRep *strings.Builder) error {
+	if currRune == '\\' {
 		*number = false
 		if *baffle {
 			if smbRep.Len() == 0 {
@@ -51,13 +51,13 @@ func check(baffle, number *bool, currRune *rune, result, smbRep *strings.Builder
 		return nil
 	}
 
-	if num, err := strconv.Atoi(string(*currRune)); err == nil {
+	if num, err := strconv.Atoi(string(currRune)); err == nil {
 		if *number {
 			return ErrInvalidString
 		}
 
 		if *baffle {
-			smbRep.WriteRune(*currRune)
+			smbRep.WriteRune(currRune)
 			*baffle = false
 			return nil
 		}
@@ -84,11 +84,11 @@ func check(baffle, number *bool, currRune *rune, result, smbRep *strings.Builder
 			*baffle = false
 		}
 
-		smbRep.WriteRune(*currRune)
+		smbRep.WriteRune(currRune)
 		return nil
 	}
 
-	result.WriteRune(*currRune)
+	result.WriteRune(currRune)
 	*number = false
 	return nil
 }

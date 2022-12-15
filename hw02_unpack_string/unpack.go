@@ -10,15 +10,11 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(v string) (string, error) {
-	if v == "" {
-		return "", nil
-	}
-
 	var baffle, number bool
 	result := &strings.Builder{}
 	smbRep := &strings.Builder{}
 
-	if unicode.IsDigit(rune(v[0])) {
+	if unicode.IsDigit(rune(v[0])) || v == "" {
 		return "", ErrInvalidString
 	}
 
@@ -59,13 +55,10 @@ func Unpack(v string) (string, error) {
 			}
 
 			baffle = false
-			if num == 0 {
+			if num != 0 {
+				result.WriteString(strings.Repeat(smbRep.String(), num))
 				smbRep.Reset()
-				continue
 			}
-
-			result.WriteString(strings.Repeat(smbRep.String(), num))
-			smbRep.Reset()
 			continue
 		}
 
@@ -76,9 +69,10 @@ func Unpack(v string) (string, error) {
 			}
 
 			smbRep.WriteRune(currRune)
-		} else {
-			result.WriteRune(currRune)
+			continue
 		}
+
+		result.WriteRune(currRune)
 		number = false
 	}
 	if baffle {

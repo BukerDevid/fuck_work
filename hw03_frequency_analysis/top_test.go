@@ -1,13 +1,17 @@
 package hw03frequencyanalysis
 
 import (
+	"crypto/md5"
+	"encoding/binary"
+	"fmt"
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -79,4 +83,46 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+}
+
+func TestSort(t *testing.T) {
+	sSmb := []string{"a", "b", "c", "а", "б", "в"}
+	xSum := make([][16]byte, 0)
+	for _, smb := range sSmb {
+		xSum = append(xSum, md5.Sum([]byte(smb)))
+	}
+
+	for _, sha := range xSum {
+		result := binary.BigEndian.Uint64(sha[:])
+		fmt.Println(result)
+	}
+}
+
+type WP struct {
+	Word  string
+	Ligth uint64
+}
+
+func TestSummBytes(t *testing.T) {
+	words := []string{"xxx", "aaab", "aabb"}
+
+	var minLW = len(words[0])
+	for _, word := range words {
+		if minLW < len(word) {
+			minLW = len(words)
+		}
+	}
+
+	log.Println("MIN LENGTH - ", minLW)
+	wordWC := make([]WP, len(words))
+	for idx, word := range words {
+		for _, sbm := range word[:minLW] {
+			wordWC[idx].Ligth += uint64(sbm)
+			wordWC[idx].Ligth = wordWC[idx].Ligth << 8
+		}
+	}
+
+	for _, word := range wordWC {
+		log.Printf("Word %s have cost %d", word.Word, word.Ligth)
+	}
 }

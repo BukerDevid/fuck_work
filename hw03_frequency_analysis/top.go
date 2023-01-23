@@ -2,116 +2,89 @@ package hw03frequencyanalysis
 
 import (
 	"strings"
+	"sync"
 )
 
 type Pair struct {
+	mx sync.Mutex
+
 	Word  string
 	Count uint32
+	Cost  uint64
 }
 
 type dictionary struct {
-	top   []*Pair
-	words map[string]uint32
+	mx sync.Mutex
+
+	top   *Top
+	words map[string]*uint32
 }
 
-func (b *dictionary) topCheck(word *string, count uint32) {
-	if count == 0 {
-		return
-	}
-
-	if count <= b.top[9].Count {
-		return
-	}
-
-	for idx := int32(9); idx >= 0; idx-- {
-		if b.top[idx].Word == *word {
-			b.top[idx].Count += 1
-			b.upPair(idx)
-			return
-		}
-
-		if count > b.top[idx].Count {
-			continue
-		}
-
-		b.replaceTop(word, count, idx)
-		return
-	}
-
-	b.top[0] = &Pair{
-		Word:  *word,
-		Count: count,
-	}
+type Top struct {
+	list     []*Pair
+	minCount uint32
 }
 
-func (b *dictionary) upPair(idx int32) {
-	if idx <= 0 {
+func (b *dictionary) SetValue(v string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	if val, ok := b.words[v]; ok {
+		*val += 1
 		return
 	}
 
-	if b.top[idx].Count >= b.top[idx-1].Count {
-		return
-	}
-
-	oldTop := b.top[idx-1]
-	b.top[idx-1] = b.top[idx]
-	b.top[idx] = oldTop
-}
-
-func (b *dictionary) replaceTop(word *string, count uint32, idx int32) {
-	if b.top[idx].Count == count && b.top[idx].Word != *word {
-		idx += 1
-	}
-
-	for addIdx := int32(9); addIdx > idx; addIdx-- {
-		b.top[addIdx] = b.top[addIdx-1]
-	}
-
-	b.top[idx] = &Pair{
-		Word:  *word,
-		Count: count,
-	}
-}
-
-func (b *dictionary) SetValue(word string) {
-	if val, ok := b.words[word]; ok {
-		b.words[word] = val + 1
-		b.topCheck(&word, val+1)
-		return
-	}
-
-	b.words[word] = 1
-	b.topCheck(&word, 1)
+	count := uint32(0)
+	b.words[v] = &count
 }
 
 func (b *dictionary) GetValue() []string {
-	words := make([]string, 10)
-	for idx, word := range b.top {
-		words[idx] = word.Word
+
+	return nil
+}
+
+func CheckSum(p *Pair) {
+	if p.Cost != 0 {
+		return
 	}
-	return words[:]
+
+	maxLength := 0
+	if len(p.Word) > 4 {
+		maxLength = 4
+	} else {
+		maxLength = len(p.Word)
+	}
+
+	for _, sbm := range p.Word[:maxLength] {
+		p.Cost += uint64(sbm)
+		p.Cost = p.Cost << 8
+	}
 }
 
 func GetDictonary() *dictionary {
 	return &dictionary{
-		top: func() []*Pair {
-			tops := make([]*Pair, 10)
-			for idx := uint8(0); idx < 10; idx++ {
-				tops[idx] = &Pair{
-					Word:  "",
-					Count: 0,
-				}
-			}
-			return tops
-		}(),
-		words: make(map[string]uint32),
+		words: make(map[string]*uint32),
 	}
 }
 
 func Top10(v string) []string {
-	dict := GetDictonary()
-	for _, word := range strings.Fields(v) {
-		dict.SetValue(word)
+	if v == "" {
+		return make([]string, 0)
 	}
+
+	dict := GetDictonary()
+	wg := sync.WaitGroup{}
+
+	for _, word := range strings.Fields(v) {
+		word = strings.TrimSpace(word)
+		if word == "-" {
+			continue
+		}
+
+		word = strings.ToLower(word)
+		wg.Add(1)
+		go dict.SetValue(word, &wg)
+	}
+
+	wg.Wait()
 	return dict.GetValue()
 }

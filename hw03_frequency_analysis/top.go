@@ -1,6 +1,7 @@
 package hw03frequencyanalysis
 
 import (
+	"log"
 	"sort"
 	"strings"
 	"sync"
@@ -45,20 +46,29 @@ func (t *Top) SetInTop(p *Pair) {
 	}
 	p.CheckCost()
 	for currentPair, pair := range t.list {
-		if pair.Count < p.Count {
+		if p.Count > pair.Count && currentPair < 9 {
 			continue
 		}
-		if currentPair > 0 {
-			for rewrite := 0; rewrite < currentPair; rewrite++ {
-				if t.list[rewrite+1].Word == pair.Word {
-					continue
-				}
+		var exist bool
+		for _, val := range t.list {
+			if val.Word == p.Word {
+				exist = true
+				break
+			}
+		}
+		for rewrite := 0; rewrite < currentPair; rewrite++ {
+			if rewrite < 9 && !exist {
+				t.list[rewrite] = t.list[rewrite+1]
+				continue
+			}
+			if p.Word == t.list[rewrite].Word {
 				if rewrite < 9 {
 					t.list[rewrite] = t.list[rewrite+1]
 				}
+				exist = false
 			}
-			t.list[currentPair] = pair
 		}
+		t.list[currentPair] = p
 		break
 	}
 }
@@ -75,11 +85,10 @@ func (b *dictionary) SetValue(v string, wg *sync.WaitGroup) {
 		wg.Done()
 		b.mx.Unlock()
 	}()
-	count := uint32(0)
+	count := uint32(1)
 	if val, ok := b.words[v]; ok {
 		*val += 1
 		count = *val
-		return
 	}
 	b.words[v] = &count
 	pair := &Pair{
@@ -91,6 +100,9 @@ func (b *dictionary) SetValue(v string, wg *sync.WaitGroup) {
 
 func (b *dictionary) GetValue() []string {
 	result := make([]string, 0, 10)
+	for _, val := range b.top.list {
+		log.Print(val)
+	}
 	sort.Slice(b.top.list[:], func(i, j int) bool {
 		if b.top.list[i].Count > b.top.list[j].Count {
 			if b.top.list[i].Cost > b.top.list[j].Cost {
@@ -108,7 +120,14 @@ func (b *dictionary) GetValue() []string {
 func GetDictonary() *dictionary {
 	return &dictionary{
 		top: &Top{
-			list: [10]*Pair{},
+			list: func() [10]*Pair {
+				var list [10]*Pair
+				for idx, _ := range list {
+					list[idx] = &Pair{}
+				}
+				return list
+			}(),
+			minValue: 0,
 		},
 		words: make(map[string]*uint32),
 	}
@@ -122,6 +141,14 @@ func Top10(v string) []string {
 	wg := sync.WaitGroup{}
 	for _, word := range strings.Fields(v) {
 		word := strings.TrimSpace(word)
+		word = strings.Trim(word, ",")
+		word = strings.Trim(word, ".")
+		word = strings.Trim(word, ":")
+		word = strings.Trim(word, ";")
+		word = strings.Trim(word, "!")
+		word = strings.Trim(word, "?")
+		word = strings.Trim(word, "\"")
+		word = strings.Trim(word, "'")
 		if word == "-" {
 			continue
 		}

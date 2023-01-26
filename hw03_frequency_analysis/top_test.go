@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -125,4 +126,24 @@ func TestSummBytes(t *testing.T) {
 	for _, word := range wordWC {
 		log.Printf("Word %s have cost %d", word.Word, word.Ligth)
 	}
+}
+
+func TestSetInTop(t *testing.T) {
+	dict := GetDictonary()
+	wg := sync.WaitGroup{}
+
+	test_word := []string{"a", "b", "a", "c"} //, "b"
+
+	for _, word := range test_word {
+		wg.Add(1)
+		go dict.SetValue(word, &wg)
+	}
+
+	wg.Wait()
+
+	pStr := ""
+	for _, val := range dict.top.list {
+		pStr += fmt.Sprintf(" %s/%d |", val.Word, val.Count)
+	}
+	log.Print(pStr)
 }

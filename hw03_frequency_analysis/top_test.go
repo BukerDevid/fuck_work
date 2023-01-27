@@ -132,18 +132,21 @@ func TestSetInTop(t *testing.T) {
 	dict := GetDictonary()
 	wg := sync.WaitGroup{}
 
-	test_word := []string{"a", "b", "a", "c"} //, "b"
+	testWords := [][]string{{"a"}, {"b"}, {"a"}, {"c"}, {"a"}, {"b"}, {"c"}, {"a"}}
 
-	for _, word := range test_word {
-		wg.Add(1)
-		go dict.SetValue(word, &wg)
+	for _, testWord := range testWords {
+		for _, word := range testWord {
+			wg.Add(1)
+			go dict.SetValue(word, &wg)
+		}
+
+		wg.Wait()
+
+		pStr := ""
+		for _, val := range dict.top.list {
+			pStr += fmt.Sprintf(" %s/%d |", val.Word, val.Count)
+		}
+		log.Print(pStr)
 	}
 
-	wg.Wait()
-
-	pStr := ""
-	for _, val := range dict.top.list {
-		pStr += fmt.Sprintf(" %s/%d |", val.Word, val.Count)
-	}
-	log.Print(pStr)
 }

@@ -69,7 +69,7 @@ func (t *Top) SetInTop(p *Pair) {
 			}
 		}
 		t.list[currentPair] = p
-		break
+		// break
 	}
 }
 

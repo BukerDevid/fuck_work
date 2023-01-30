@@ -1,8 +1,6 @@
 package hw03frequencyanalysis
 
 import (
-	"crypto/md5"
-	"encoding/binary"
 	"fmt"
 	"log"
 	"sync"
@@ -86,58 +84,15 @@ func TestTop10(t *testing.T) {
 	})
 }
 
-func TestSort(t *testing.T) {
-	sSmb := []string{"a", "b", "c", "а", "б", "в"}
-	xSum := make([][16]byte, 0)
-	for _, smb := range sSmb {
-		xSum = append(xSum, md5.Sum([]byte(smb)))
-	}
-
-	for _, sha := range xSum {
-		result := binary.BigEndian.Uint64(sha[:])
-		fmt.Println(result)
-	}
-}
-
-type WP struct {
-	Word  string
-	Ligth uint64
-}
-
-func TestSummBytes(t *testing.T) {
-	words := []string{"xxx", "aaab", "aabb"}
-
-	var minLW = len(words[0])
-	for _, word := range words {
-		if minLW < len(word) {
-			minLW = len(words)
-		}
-	}
-
-	log.Println("MIN LENGTH - ", minLW)
-	wordWC := make([]WP, len(words))
-	for idx, word := range words {
-		for _, sbm := range word[:minLW] {
-			wordWC[idx].Ligth += uint64(sbm)
-			wordWC[idx].Ligth = wordWC[idx].Ligth << 8
-		}
-	}
-
-	for _, word := range wordWC {
-		log.Printf("Word %s have cost %d", word.Word, word.Ligth)
-	}
-}
-
 func TestSetInTop(t *testing.T) {
 	dict := GetDictonary()
 	wg := sync.WaitGroup{}
 
-	testWords := [][]string{{"a"}, {"b"}, {"a"}, {"c"}, {"a"}, {"b"}, {"c"}, {"a"}}
+	testWords := [][]string{{"a"}, {"b"}, {"a"}, {"c"}, {"a"}, {"b"}, {"c"}, {"a"}, {"c"}}
 
 	for _, testWord := range testWords {
 		for _, word := range testWord {
-			wg.Add(1)
-			go dict.SetValue(word, &wg)
+			dict.SetValue(word)
 		}
 
 		wg.Wait()
@@ -147,6 +102,13 @@ func TestSetInTop(t *testing.T) {
 			pStr += fmt.Sprintf(" %s/%d |", val.Word, val.Count)
 		}
 		log.Print(pStr)
+	}
+	result := dict.GetValue()
+	// a(4)
+	// c(3)
+	// b(2)
+	if result[0] != "a" || result[1] != "c" || result[2] != "b" {
+		log.Panic("Invalid sort")
 	}
 
 }

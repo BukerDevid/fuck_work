@@ -4,7 +4,6 @@ import (
 	"log"
 	"sort"
 	"strings"
-	"sync"
 )
 
 type Pair struct {
@@ -30,26 +29,28 @@ func (p *Pair) CheckCost() {
 }
 
 type Top struct {
-	mx       sync.Mutex
-	list     [10]*Pair
+	list     [21]*Pair
 	minValue uint32
 }
 
 func (t *Top) SetInTop(p *Pair) {
-	t.mx.Lock()
 	defer func() {
 		t.minValue = t.list[0].Count
-		t.mx.Unlock()
 	}()
 	if p.Count < t.minValue {
 		return
 	}
 	p.CheckCost()
+	var exist bool
+	counter := 0
 	for currentPair, pair := range t.list {
-		if p.Count > pair.Count && currentPair < 9 {
+		if p.Count > pair.Count && currentPair < 20 {
+			counter++
 			continue
 		}
-		var exist bool
+		if counter > 0 {
+			counter--
+		}
 		for _, val := range t.list {
 			if val.Word == p.Word {
 				exist = true
@@ -57,34 +58,26 @@ func (t *Top) SetInTop(p *Pair) {
 			}
 		}
 		for rewrite := 0; rewrite < currentPair; rewrite++ {
-			if rewrite < 9 && !exist {
+			if !exist {
 				t.list[rewrite] = t.list[rewrite+1]
 				continue
 			}
 			if p.Word == t.list[rewrite].Word {
-				if rewrite < 9 {
-					t.list[rewrite] = t.list[rewrite+1]
-				}
+				t.list[rewrite] = t.list[rewrite+1]
 				exist = false
 			}
 		}
-		t.list[currentPair] = p
-		// break
+		t.list[counter] = p
+		break
 	}
 }
 
 type dictionary struct {
-	mx    sync.Mutex
 	top   *Top
 	words map[string]*uint32
 }
 
-func (b *dictionary) SetValue(v string, wg *sync.WaitGroup) {
-	b.mx.Lock()
-	defer func() {
-		wg.Done()
-		b.mx.Unlock()
-	}()
+func (b *dictionary) SetValue(v string) {
 	count := uint32(1)
 	if val, ok := b.words[v]; ok {
 		*val += 1
@@ -100,19 +93,25 @@ func (b *dictionary) SetValue(v string, wg *sync.WaitGroup) {
 
 func (b *dictionary) GetValue() []string {
 	result := make([]string, 0, 10)
-	for _, val := range b.top.list {
-		log.Print(val)
-	}
 	sort.Slice(b.top.list[:], func(i, j int) bool {
-		if b.top.list[i].Count > b.top.list[j].Count {
+		if b.top.list[i].Count < b.top.list[j].Count {
+			return true
+		}
+		if b.top.list[i].Count == b.top.list[j].Count {
 			if b.top.list[i].Cost > b.top.list[j].Cost {
 				return true
 			}
 		}
 		return false
 	})
-	for _, pair := range b.top.list {
-		result = append(result, pair.Word)
+	for _, val := range b.top.list {
+		log.Println(val)
+	}
+	top := b.top.list[11:]
+	for idx := 9; idx >= 0; idx-- {
+		if top[idx].Cost > 0 {
+			result = append(result, top[idx].Word)
+		}
 	}
 	return result
 }
@@ -120,8 +119,8 @@ func (b *dictionary) GetValue() []string {
 func GetDictonary() *dictionary {
 	return &dictionary{
 		top: &Top{
-			list: func() [10]*Pair {
-				var list [10]*Pair
+			list: func() [21]*Pair {
+				var list [21]*Pair
 				for idx, _ := range list {
 					list[idx] = &Pair{}
 				}
@@ -138,7 +137,6 @@ func Top10(v string) []string {
 		return make([]string, 0)
 	}
 	dict := GetDictonary()
-	wg := sync.WaitGroup{}
 	for _, word := range strings.Fields(v) {
 		word := strings.TrimSpace(word)
 		word = strings.Trim(word, ",")
@@ -153,9 +151,7 @@ func Top10(v string) []string {
 			continue
 		}
 		word = strings.ToLower(word)
-		wg.Add(1)
-		go dict.SetValue(word, &wg)
+		dict.SetValue(word)
 	}
-	wg.Wait()
 	return dict.GetValue()
 }

@@ -138,7 +138,6 @@ func (ls *list) MoveToFront(i *ListItem) {
 	ls.first = i
 	ls.first.Next = buf
 	ls.first.Prev = nil
-
 }
 
 func NewList() List {

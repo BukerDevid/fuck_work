@@ -55,7 +55,7 @@ func (lc *lruCache) Set(key Key, value interface{}) bool {
 	if lc.queue.Len() == lc.capacity {
 		rmItem := lc.queue.Back()
 
-		//INFO: небезопасная дрянь
+		// INFO: небезопасная дрянь
 		key := rmItem.Value.(cacheItem)
 
 		delete(lc.items, key.GetKey())

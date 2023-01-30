@@ -85,10 +85,10 @@ func (ls *list) PushBack(v interface{}) *ListItem {
 }
 
 func (ls *list) Remove(i *ListItem) {
-	defer func(i *ListItem) {
+	defer func() {
 		ls.size--
 		ls.checkRelation()
-	}(i)
+	}()
 	if ls.size == 0 {
 		return
 	}

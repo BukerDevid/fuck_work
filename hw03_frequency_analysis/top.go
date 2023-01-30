@@ -24,7 +24,7 @@ func (p *Pair) CheckCost() {
 	}
 	for _, sbm := range p.Word[:maxLength] {
 		p.Cost += uint64(sbm)
-		p.Cost = p.Cost << 8
+		p.Cost <<= 8
 	}
 }
 

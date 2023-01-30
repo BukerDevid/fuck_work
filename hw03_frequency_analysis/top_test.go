@@ -110,5 +110,4 @@ func TestSetInTop(t *testing.T) {
 	if result[0] != "a" || result[1] != "c" || result[2] != "b" {
 		log.Panic("Invalid sort")
 	}
-
 }

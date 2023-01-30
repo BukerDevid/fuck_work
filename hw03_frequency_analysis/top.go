@@ -72,15 +72,15 @@ func (t *Top) SetInTop(p *Pair) {
 	}
 }
 
-type dictionary struct {
+type Dictionary struct {
 	top   *Top
 	words map[string]*uint32
 }
 
-func (b *dictionary) SetValue(v string) {
+func (b *Dictionary) SetValue(v string) {
 	count := uint32(1)
 	if val, ok := b.words[v]; ok {
-		*val += 1
+		*val++
 		count = *val
 	}
 	b.words[v] = &count
@@ -91,7 +91,7 @@ func (b *dictionary) SetValue(v string) {
 	b.top.SetInTop(pair)
 }
 
-func (b *dictionary) GetValue() []string {
+func (b *Dictionary) GetValue() []string {
 	result := make([]string, 0, 10)
 	sort.Slice(b.top.list[:], func(i, j int) bool {
 		if b.top.list[i].Count < b.top.list[j].Count {
@@ -116,8 +116,8 @@ func (b *dictionary) GetValue() []string {
 	return result
 }
 
-func GetDictonary() *dictionary {
-	return &dictionary{
+func GetDictonary() *Dictionary {
+	return &Dictionary{
 		top: &Top{
 			list: func() [21]*Pair {
 				var list [21]*Pair

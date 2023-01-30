@@ -121,7 +121,7 @@ func GetDictonary() *dictionary {
 		top: &Top{
 			list: func() [21]*Pair {
 				var list [21]*Pair
-				for idx, _ := range list {
+				for idx := 0; idx < len(list); idx++ {
 					list[idx] = &Pair{}
 				}
 				return list

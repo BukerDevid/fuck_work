@@ -31,10 +31,10 @@ func (ls *list) Front() *ListItem { return ls.first }
 
 func (ls *list) Back() *ListItem { return ls.last }
 
-func (ls *list) checkFirst(new *ListItem) bool {
+func (ls *list) checkFirst(add *ListItem) bool {
 	if ls.first == nil {
-		ls.first = new
-		ls.last = new
+		ls.first = add
+		ls.last = add
 		return false
 	}
 	return true

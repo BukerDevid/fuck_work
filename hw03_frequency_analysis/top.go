@@ -16,7 +16,7 @@ func (p *Pair) CheckCost() {
 	if p.Cost > 0 {
 		return
 	}
-	maxLength := 0
+	var maxLength int
 	if len(p.Word) > 4 {
 		maxLength = 4
 	} else {

@@ -26,7 +26,7 @@ type FileCop struct {
 	info os.FileInfo
 }
 
-func NewFileCop(fromPath string) (*FileCop, error) {
+func NewFileCop(fromPath, toPath string) (*FileCop, error) {
 	src, err := os.OpenFile(fromPath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		log.Print(time.Now(), err)
@@ -43,9 +43,8 @@ func NewFileCop(fromPath string) (*FileCop, error) {
 		return nil, ErrUnsupportedFile
 	}
 
-	out, err := os.CreateTemp("tmp_copy", "*")
+	out, err := os.Create(toPath)
 	if err != nil {
-		log.Print(time.Now(), err)
 		return nil, ErrInvalidPath
 	}
 
@@ -81,6 +80,7 @@ func (cf *FileCop) Copy(offset, limit int64, progress chan uint8) {
 				break
 			}
 		}
+		//TODO: add limit
 
 		if n > 0 {
 			x, err := cf.out.Write(buf)
@@ -120,7 +120,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrInvalidPath
 	}
 
-	cf, err := NewFileCop(fromPath)
+	cf, err := NewFileCop(fromPath, toPath)
 	if err != nil {
 		return err
 	}
@@ -130,6 +130,8 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	for step := range progress {
 		fmt.Printf("\rprogress - %d %%", step)
 	}
+	fmt.Printf("\rprogress - %d %%\n", 100)
+	fmt.Println("Success!")
 
 	cf.Close()
 

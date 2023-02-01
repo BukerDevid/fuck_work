@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 )
 
 var (
@@ -18,5 +19,13 @@ func init() {
 
 func main() {
 	flag.Parse()
-	// Place your code here.
+	fmt.Printf("from %s - to %s\nlimit %d, offset %d\n",
+		from,
+		to,
+		limit,
+		offset,
+	)
+	if err := Copy(from, to, offset, limit); err != nil {
+		panic(err)
+	}
 }

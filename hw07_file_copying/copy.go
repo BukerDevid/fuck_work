@@ -73,13 +73,6 @@ func (cf *FileCop) Copy(offset, limit int64, progress chan uint8) {
 	}
 	step := (cf.info.Size() / (BUF_SIZE * 1024)) + 1
 	buf := make([]byte, BUF_SIZE*1024)
-	// countScan := 0
-
-	// defer func() {
-	// 	if countScan != int(cf.info.Size()-offset) {
-	// 		log.Print("invalid copy. unknow error")
-	// 	}
-	// }()
 
 	for currentStep := int64(0); currentStep < step; currentStep++ {
 		n, err := cf.file.ReadAt(buf, offset)

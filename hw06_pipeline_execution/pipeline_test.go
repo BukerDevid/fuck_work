@@ -2,6 +2,7 @@ package hw06pipelineexecution
 
 import (
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -89,5 +90,28 @@ func TestPipeline(t *testing.T) {
 
 		require.Len(t, result, 0)
 		require.Less(t, int64(elapsed), int64(abortDur)+int64(fault))
+	})
+
+	t.Run("load Test", func(t *testing.T) {
+		wg := sync.WaitGroup{}
+
+		in := make(Bi)
+		out := ExecutePipeline(in, nil)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for read := range out {
+				if read == nil {
+					t.Error("invalid value")
+					break
+				}
+			}
+		}()
+
+		for idx := uint16(0); idx < 65535; idx++ {
+			in <- idx
+		}
+
 	})
 }
